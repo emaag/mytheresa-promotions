@@ -1,0 +1,24 @@
+{
+    "name": "mytheresa/promotions",
+    "description": "Mytheresa Promotions Test",
+    "type": "project",
+    "require": {
+        "slim/slim": "^4.0",
+        "nyholm/psr7": "^1.8",
+        "nyholm/psr7-server": "^1.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mytheresa\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Eric Maag",
+            "email": "eric.maag@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    }
+}
