@@ -65,20 +65,34 @@ Filter by Category and Price:
 
     GET /products?category=boots&priceLessThan=80000
 
+localhost:8080/products?category=boots&priceLessThan=80000
+
 Project Structure
 
 mytheresa-promotions/
+
 ├── public/
+
 │   └── index.php       # Entry point for the API
+
 ├── src/
+
 │   ├── Product.php     # Product model
+
 │   └── ProductService.php  # Business logic for discounts and filtering
+
 ├── tests/
+
 │   └── ProductServiceTest.php # Unit tests for the ProductService
+
 ├── vendor/             # Composer dependencies
+
 ├── composer.json       # Composer configuration
+
 ├── composer.lock       # Lock file for dependencies
+
 └── README.md           # Project documentation
+
 
 Testing
 Prerequisites
