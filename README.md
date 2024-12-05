@@ -1,5 +1,109 @@
 Mytheresa Promotions API
-Description
+eric.maag@gmail.com 
+
+TODO: since I was sick for the last 2 I had to create this as an MVP, below are my design notes for DB integration. 
+NOTE: this is quick pseudocode that's not tested yet, but I think it could be easily integrated, please let me know (since I know time is a factor) if you'd like me to implement this as well.
+PERFOMANCE NOTES: 
+    Create indexes on columns frequently used in filters (category, price).
+    Implement Redis for caching and responses
+    
+
+DESIGN A SQL FORMAT
+
+   CREATE TABLE products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sku VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(255) NOT NULL,
+    price INT NOT NULL, -- Store price as an integer (e.g., 100.00€ = 10000)
+    discount_percentage INT DEFAULT NULL
+  );
+
+ABSTRACTION LAYER 
+
+  Create an abstraction layer to interact with the database. Use an ORM (Object-Relational Mapper) or raw queries:
+
+  class ProductRepository
+  {
+    private $collection;
+
+    public function __construct($mongoClient)
+    {
+        $this->collection = $mongoClient->mydb->products;
+    }
+
+    public function getProducts($category = null, $priceLessThan = null)
+    {
+        $filter = [];
+
+        if ($category) {
+            $filter['category'] = $category;
+        }
+
+        if ($priceLessThan) {
+            $filter['price'] = ['$lte' => $priceLessThan];
+        }
+
+        return $this->collection->find($filter, ['limit' => 5])->toArray();
+    }
+}
+
+APPLICATION LOGIC
+
+integrate the database abstraction layer with your business logic (ProductService) to apply discounts and format JSON responses:
+class ProductService
+{
+    private $repository;
+
+    public function __construct($repository)
+    {
+        $this->repository = $repository;
+    }
+
+    public function getProducts($category = null, $priceLessThan = null)
+    {
+        $products = $this->repository->getProducts($category, $priceLessThan);
+
+        foreach ($products as &$product) {
+            $originalPrice = $product['price'];
+            $discount = 0;
+
+            if ($product['category'] === 'boots') {
+                $discount = max($discount, 30);
+            }
+
+            if ($product['sku'] === '000003') {
+                $discount = max($discount, 15);
+            }
+
+            $product['price'] = [
+                'original' => $originalPrice,
+                'final' => $discount ? round($originalPrice * (1 - $discount / 100)) : $originalPrice,
+                'discount_percentage' => $discount ? "{$discount}%" : null,
+                'currency' => 'EUR'
+            ];
+        }
+
+        return $products;
+    }
+}
+
+JSON RESPONSE
+
+$app->get('/products', function ($request, $response, $args) use ($productService) {
+    $queryParams = $request->getQueryParams();
+    $category = $queryParams['category'] ?? null;
+    $priceLessThan = $queryParams['priceLessThan'] ?? null;
+
+    $products = $productService->getProducts($category, $priceLessThan);
+
+    $response->getBody()->write(json_encode($products));
+    return $response->withHeader('Content-Type', 'application/json');
+});
+
+
+DOCUMENTATION 
+         
 
 This project implements a REST API endpoint that:
 
